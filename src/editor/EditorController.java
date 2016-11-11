@@ -40,15 +40,14 @@ public class EditorController implements Initializable {
     private Desktop desktop = Desktop.getDesktop();
     public BorderPane borderPane;
     final HTMLEditor htmlEditor = new HTMLEditor();
+    
+    // Dosya şifrelemede kullanılan password.
     public static String receivedPassword = null; //askpassword ile aldigi o anlik sifre
+    
     public static boolean sign = false;
     //dogruluk kontrolleri fonksiyonlar icinde yapiliyor
     //askpasswordden return ediliyor
-
-    public static String getReceivedPassword() {
-        return receivedPassword;
-    }
-
+    
     final Label labelFile = new Label();
 
     final TextArea textArea = TextAreaBuilder.create()
@@ -59,8 +58,9 @@ public class EditorController implements Initializable {
     // son girilen directory ve passwordler sayesinde ctrl+s ile hızlıca kayıt yapılabilecek
     private String lastDirectory = null;
     private String lastPassword = null;
-    private String lastText;
-
+    private String lastText = "";
+    private String lastSavedText = "";
+    
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -72,19 +72,20 @@ public class EditorController implements Initializable {
                 lastText = stripHTMLTags(htmlEditor.getHtmlText());
             }
         });
-        
     }
-
+    
+    public static String getReceivedPassword() {
+        return receivedPassword;
+    }
     /**
      * This method create an menu and getting password to encrypt file.
-     *
      * @return password which is received from user.
      * @throws Exception FXML loader can throw exception.
      */
     public static String askPassword() throws Exception {
         Stage passWindow = new Stage();
         passWindow.initModality(Modality.APPLICATION_MODAL);
-        passWindow.setTitle("password");
+        passWindow.setTitle("Enter password to encrypt file");
        
         Parent passLayout = FXMLLoader.load(new URL("file:src/editor/PasswordDesign.fxml"));
         
@@ -97,10 +98,7 @@ public class EditorController implements Initializable {
         passWindow.showAndWait();
         return getReceivedPassword();
     }
-    
-    /**
-     * Creates new page.
-     */
+
     public void newTextFile() {
         if (isTextChanged() && askSaveChanges()) {
             saveTextFile();
@@ -108,18 +106,17 @@ public class EditorController implements Initializable {
 
         htmlEditor.setHtmlText("");
         lastText = "";
+        lastSavedText = "";
         lastDirectory = null;
     }
-
+    
     private boolean isTextChanged() {
-        ///System.out.println(":::" + !(htmlEditor.getHtmlText().equals(lastText)));
-        return !(htmlEditor.getHtmlText().equals(lastText));
+        return !(lastText.equals(lastSavedText));
     }
 
     /**
      * TODO
-     *
-     * @return
+     * @return 
      */
     public boolean askSaveChanges() {
         TODO:
@@ -129,12 +126,6 @@ public class EditorController implements Initializable {
         return false;
     }
 
-    /**
-     * Interacts with the user via FileChooser to get the file which will be
-     * open.
-     *
-     * @throws Exception
-     */
     public void openTextFile() throws Exception {
         if (isTextChanged() && askSaveChanges()) {
             saveTextFile();
@@ -181,6 +172,7 @@ public class EditorController implements Initializable {
             }
 
             lastText = htmlEditor.getHtmlText();
+            lastSavedText = lastText;
         } catch (Exception ex) {
             Stage errorWindow = new Stage();
             errorWindow.initModality(Modality.APPLICATION_MODAL);
@@ -194,13 +186,6 @@ public class EditorController implements Initializable {
         }
     }
 
-    /**
-     * Reads file from the given File object.
-     *
-     * @param file
-     * @return
-     * @throws Exception
-     */
     public static String readFile(File file) throws Exception {
         StringBuilder stringBuffer = new StringBuilder();
         BufferedReader bufferedReader = null;
@@ -252,10 +237,6 @@ public class EditorController implements Initializable {
         return stringBuffer.toString();
     }
 
-    /**
-     * Does the save operation, interacts with user via File Chooser to get the
-     * path and name.
-     */
     public void saveTextFile() {
 
         FileChooser fileChooser = new FileChooser();
@@ -279,13 +260,7 @@ public class EditorController implements Initializable {
         }
     }
 
-    /**
-     * Takes the path of the string and does the save operation.
-     *
-     * @param directory
-     * @throws Exception
-     */
-    private void saveTextFile(String directory) throws Exception {
+    public void saveTextFile(String directory) throws Exception {
         File file = new File(directory);
 
         String password = askPassword();
@@ -293,6 +268,7 @@ public class EditorController implements Initializable {
             lastDirectory = file.getPath();
             lastPassword = password;
             lastText = htmlEditor.getHtmlText();
+            lastSavedText = lastText;
         } else {
             Stage errorWindow = new Stage();
             errorWindow.initModality(Modality.APPLICATION_MODAL);
@@ -347,9 +323,8 @@ public class EditorController implements Initializable {
     }
 
     /**
-     * This method configure file chooser menu.User can choose txt files,ptf
-     * files, and all files
-     *
+     * This method configure file chooser menu.User can choose txt files,ptf files,
+     * and all files
      * @param fileChooser fileChooser object.
      */
     private static void configureFileChooserOpen(final FileChooser fileChooser) {
@@ -379,10 +354,9 @@ public class EditorController implements Initializable {
     }
 
     /**
-     * This method configure file chooser menu.User want to save file to
-     * anywhere This method choose directory which will save there.
-     *
-     * @param fileChooser
+     * This method configure file chooser menu.User want to save file to anywhere
+     * This method choose directory which will save there.
+     * @param fileChooser 
      */
     private static void configureFileChooserSave(final FileChooser fileChooser) {
         fileChooser.setTitle("Save file");
